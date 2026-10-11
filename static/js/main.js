@@ -40,6 +40,13 @@ const App = {
     return { lang, setLang, pageKey: computed(() => view.value + dark.value + lang.value), nav, view, go, dash, dark, toggleTheme, palette, q, hits, pin, openHit, firstHit, S, openNote, refresh };
   },
 };
+// Textareas grow with their content (CSS field-sizing where supported, JS fallback otherwise).
+if (!(window.CSS && CSS.supports && CSS.supports('field-sizing', 'content'))) {
+  const fit = el => { if (el.classList.contains('fill')) return; el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight + 2, innerHeight * 0.6) + 'px'; };
+  document.addEventListener('input', e => e.target.tagName === 'TEXTAREA' && fit(e.target));
+  let raf; new MutationObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => document.querySelectorAll('textarea').forEach(fit)); })
+    .observe(document.documentElement, { childList: true, subtree: true });
+}
 const app = Vue.createApp(App);
 app.config.globalProperties.$t = T;
 app.component('chart-view', ChartView);

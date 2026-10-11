@@ -24,8 +24,8 @@ Views.dashboard = {
       <div class="row" style="margin-top:6px"><button class="pri" @click="capture" :disabled="!quick.trim()">{{ $t('Save as note') }}</button>
         <button @click="captureTask" :disabled="!quick.trim()">{{ $t('Save as task') }}</button></div>
     </div>
-    <div class="card"><h2>{{ $t('Study activity (last 18 weeks)') }}</h2>
-      <div class="heat"><i v-for="(c,ix) in cells" :key="c.d" :class="'l'+c.l" :style="{'--d':ix}" :title="c.d+': '+c.v"></i></div>
+    <div class="card"><h2>{{ $t('Study activity') }}</h2>
+      <div class="heat-wrap" ref="heatEl"><div class="heat" :style="{gridTemplateColumns: 'repeat(' + weeks + ', 13px)'}"><i v-for="(c,ix) in cells" :key="c.d" :class="'l'+c.l" :style="{'--d':ix}" :title="c.d+': '+c.v"></i></div></div>
       <div class="muted small" style="margin-top:6px">{{ $t('Reviews, notes and focus time all count.') }}</div></div>
     <div class="card"><h2>{{ $t('Upcoming tasks') }}</h2>
       <transition-group name="list" tag="div">
@@ -46,10 +46,14 @@ Views.dashboard = {
     onMounted(() => window.addEventListener('data-changed', onData)); onBeforeUnmount(() => window.removeEventListener('data-changed', onData));
     onMounted(refresh);
     const greeting = computed(() => { const h = new Date().getHours(); return h < 12 ? T('Good morning') : h < 18 ? T('Good afternoon') : T('Good evening'); });
+    const heatEl = ref(null), heatW = ref(300); let ro;
+    onMounted(() => { if (window.ResizeObserver && heatEl.value) { ro = new ResizeObserver(([e]) => { heatW.value = e.contentRect.width; }); ro.observe(heatEl.value); } });
+    onBeforeUnmount(() => ro && ro.disconnect());
+    const weeks = computed(() => Math.max(5, Math.min(40, Math.floor((heatW.value + 3) / 16))));
     const cells = computed(() => {
       const out = [], act = d.value.activity || {}, t = new Date();
-      t.setDate(t.getDate() - (17 * 7 + t.getDay()));
-      for (let i = 0; i < 18 * 7; i++) {
+      t.setDate(t.getDate() - ((weeks.value - 1) * 7 + t.getDay()));
+      for (let i = 0; i < weeks.value * 7; i++) {
         const k = t.toISOString().slice(0, 10), v = Math.round(act[k] || 0);
         out.push({ d: k, v, l: v === 0 ? 0 : v < 5 ? 1 : v < 15 ? 2 : v < 30 ? 3 : 4 }); t.setDate(t.getDate() + 1);
       } return out;
@@ -64,6 +68,6 @@ Views.dashboard = {
     };
     const captureTask = async () => { await saveDoc('task', { text: quick.value.trim().split('\n')[0], done: false, priority: 'med' }); quick.value = ''; toast(T('Task added')); refresh(); };
     const done = async t => { await saveDoc('task', { ...t, done: true }); refresh(); };
-    return { d, quick, greeting, cells, tasks, notes, S, seed, capture, captureTask, toggleTask, money, todayS };
+    return { d, quick, greeting, heatEl, weeks, cells, tasks, notes, S, seed, capture, captureTask, toggleTask, money, todayS };
   },
 };

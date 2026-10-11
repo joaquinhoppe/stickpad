@@ -279,7 +279,7 @@ function mdToggleCheck(body, idx) {
 // Reusable chart component
 const ChartView = {
   props: { config: Object, height: { type: Number, default: 300 } },
-  template: `<div :style="{height: height+'px', position:'relative'}"><canvas ref="cv"></canvas></div>`,
+  template: `<div class="chart-box" :style="{height: 'clamp(200px,' + (height / 9).toFixed(1) + 'vh,' + Math.round(height * 1.4) + 'px)'}"><canvas ref="cv"></canvas></div>`,
   setup(props, { expose }) {
     const cv = ref(null); let ch = null;
     const draw = () => {

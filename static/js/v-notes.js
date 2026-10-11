@@ -63,7 +63,7 @@ Views.notes = {
       <button class="sm danger" @click="del">{{ $t('Delete') }}</button>
     </div>
     <div class="split" :class="{one:mode!=='split'}">
-      <textarea v-if="mode!=='view'" ref="ta" v-model="cur.body" @input="dirty" @keydown.tab.prevent="ins('  ')" :placeholder="$t('Write Markdown… use [[links]], $math$, ![[chart:ID]], [@citekey]')"></textarea>
+      <textarea v-if="mode!=='view'" class="fill" ref="ta" v-model="cur.body" @input="dirty" @keydown.tab.prevent="ins('  ')" :placeholder="$t('Write Markdown… use [[links]], $math$, ![[chart:ID]], [@citekey]')"></textarea>
       <div v-if="mode!=='edit'" class="preview md" ref="pv" v-html="html" @click="pvClick"></div>
     </div>
     <div class="row small" style="margin-top:6px;align-items:flex-start">

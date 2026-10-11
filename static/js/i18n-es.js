@@ -19,7 +19,7 @@ window.ES = {
   'Quick capture': 'Captura rápida',
   'Type a thought… (Markdown ok). First line becomes the title.': 'Escribe una idea… (admite Markdown). La primera línea será el título.',
   'Save as note': 'Guardar como nota', 'Save as task': 'Guardar como tarea',
-  'Study activity (last 18 weeks)': 'Actividad de estudio (últimas 18 semanas)',
+  'Study activity': 'Actividad de estudio',
   'Reviews, notes and focus time all count.': 'Cuentan repasos, notas y tiempo de enfoque.',
   'Upcoming tasks': 'Próximas tareas', 'Nothing due': 'Nada pendiente', 'Pinned & recent notes': 'Notas fijadas y recientes',
   'Demo data loaded': 'Datos de ejemplo cargados', 'Note saved': 'Nota guardada', 'Task added': 'Tarea añadida',

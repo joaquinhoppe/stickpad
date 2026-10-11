@@ -2,7 +2,7 @@ Views.research = {
   emits: ['open-note'],
   template: `
 <div><h1>{{ $t('Research library') }}</h1>
-<div class="grid" style="grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);align-items:start">
+<div class="grid g2 top">
   <div>
     <div class="row" style="margin-bottom:8px"><input v-model="q" :placeholder="$t('Search sources…')" style="flex:1"><button class="pri" @click="create">{{ $t('＋ Source') }}</button></div>
     <div class="card" v-for="s in list" :key="s.id" :style="cur&&cur.id===s.id?'outline:2px solid var(--accent)':''" @click="cur={...s}" style="cursor:pointer;margin-bottom:8px">

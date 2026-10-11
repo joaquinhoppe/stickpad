@@ -2,7 +2,7 @@ Views.charts = {
   template: `
 <div>
   <h1>{{ $t('Graphs') }}</h1>
-  <div class="grid" style="grid-template-columns:240px 1fr;align-items:start">
+  <div class="grid split-side">
     <div class="card">
       <button class="pri" @click="create" style="width:100%;margin-bottom:8px">{{ $t('＋ New graph') }}</button>
       <div v-for="c in S.chart" :key="c.id" class="nitem" :class="{on:cur&&cur.id===c.id}" @click="pick(c)">
