@@ -18,7 +18,7 @@ async function api(path, method = 'GET', body) {
 // ------------------------------------------------------------ store
 const S = reactive({
   note: [], chart: [], card: [], source: [], txn: [], task: [], session: [], holding: [], subject: [], mark: [],
-  toast: '', toastAct: null, toastT: null,
+  ready: false, toast: '', toastAct: null, toastT: null,
 });
 const KINDS = ['note', 'chart', 'card', 'source', 'txn', 'task', 'session', 'holding', 'subject', 'mark'];
 async function load(kinds = KINDS) {

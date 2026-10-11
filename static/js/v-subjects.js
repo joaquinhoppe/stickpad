@@ -7,6 +7,7 @@ const Subjects = {
     <p class="muted">{{ $t('Add your subjects, record every mark, and StickPad shows your progress per subject and whether your study time matches where you need it most.') }}</p>
   </div>
 
+  <sk-result v-if="!a"/>
   <div class="grid g4 gap-b" v-if="a && a.subjects.length">
     <div class="tile"><div class="v">{{ a.overall==null ? '–' : fmt(a.overall,1)+'%' }}</div><div class="l">{{ $t('overall average') }}</div></div>
     <div class="tile"><div class="v">{{ fmt(a.total_minutes/60,1) }} h</div><div class="l">{{ $t('focus time, last 30 days') }}</div></div>

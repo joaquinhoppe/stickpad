@@ -13,6 +13,7 @@ Views.help = {
   <div class="chips" v-if="sections.length">
     <a v-for="(s,i) in sections" :key="i" class="chip" href="#" @click.prevent="jump(i)">{{ s.title }}</a>
   </div>
+  <div class="card" v-if="!sections.length && !q"><div class="sk-lines"><sk h="22px" w="35%"/><sk h="12px"/><sk h="12px" w="85%"/><sk h="12px" w="70%"/></div></div>
   <div class="card md" v-if="intro && !q" v-html="intro"></div>
   <div class="help-cols">
     <section v-for="s in shown" :key="s.i" :id="'help-'+s.i" class="card md help-sec" :class="{closed: !isOpen(s.i)}">

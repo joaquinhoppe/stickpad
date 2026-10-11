@@ -19,7 +19,7 @@ A local-first workbench for **studying, research and finance**, built with **Fla
 - **Study** – SM-2 spaced-repetition flashcards (auto-generated from notes via `Q :: A` and `{{cloze}}`), Pomodoro timer that persists across pages, tasks with priorities, and a subjects & marks tracker that charts progress per subject and flags the ones being left behind or over-studied.
 - **Research** – source library, APA/MLA/Chicago/BibTeX citations, bibliography export, reading-note generator.
 - **Lab** – descriptive statistics, linear regression, normal distribution explorer, grade planner, scientific calculator.
-- **Bilingual UI** – English / Spanish switcher (sidebar), including the tutorial and demo data. Glossy glass theme with light and dark modes.
+- **Bilingual UI** – English / Spanish switcher (sidebar), including the tutorial and demo data. Clean, classic theme with light and dark modes, lightweight animations and skeleton loading placeholders.
 - **Dashboard** – streak, activity heatmap, due cards, quick capture. **Ctrl+K** global search, dark mode, JSON export/import.
 
 The full walkthrough is in [TUTORIAL.md](TUTORIAL.md) (also shown in the app under **Help**).

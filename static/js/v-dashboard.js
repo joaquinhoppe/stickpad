@@ -10,7 +10,8 @@ Views.dashboard = {
   </div>
   <div class="card row sp" v-if="hasDemo"><span>{{ $t('You are viewing demo data.') }}</span>
     <button class="danger" @click="clearDemo">{{ $t('Delete demo data') }}</button></div>
-  <div class="grid g4" style="margin-bottom:14px">
+  <div class="grid g4 gap-b" v-if="loading"><div v-for="i in 6" :key="i" class="tile"><sk h="26px" w="50%"/><sk h="11px" w="75%" style="margin-top:10px"/></div></div>
+  <div class="grid g4 gap-b" v-else>
     <div class="tile"><div class="v"><span v-count="d.streak||0"></span> 🔥</div><div class="l">{{ $t('day streak') }}</div></div>
     <div class="tile" style="cursor:pointer" @click="$emit('go','study')"><div class="v" :class="{bad:d.due}"><span v-count="d.due||0"></span></div><div class="l">{{ $t('cards due') }} · {{ $t('{n} done today',{n:d.reviews_today||0}) }}</div></div>
     <div class="tile"><div class="v">{{Math.round(d.minutes_week||0)}}m</div><div class="l">{{ $t('focus this week') }}</div></div>
@@ -62,6 +63,7 @@ Views.dashboard = {
     });
     const tasks = computed(() => S.task.filter(t => !t.done || recentTasks.has(t.id)).sort((a, b) => (a.due || '9') < (b.due || '9') ? -1 : 1).slice(0, 6));
     const notes = computed(() => [...S.note].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.updated.localeCompare(a.updated)).slice(0, 6));
+    const loading = computed(() => d.value.notes === undefined);
     const hasDemo = computed(() => ['note', 'card', 'task', 'source', 'chart', 'txn', 'subject', 'mark'].some(k => S[k].some(x => x.demo)));
     const clearDemo = async () => {
       if (!confirm(T('Delete the demo data? Your own notes and data are kept.'))) return;
@@ -75,6 +77,6 @@ Views.dashboard = {
     };
     const captureTask = async () => { await saveDoc('task', { text: quick.value.trim().split('\n')[0], done: false, priority: 'med' }); quick.value = ''; toast(T('Task added')); refresh(); };
     const done = async t => { await saveDoc('task', { ...t, done: true }); refresh(); };
-    return { hasDemo, clearDemo, d, quick, greeting, heatEl, weeks, cells, tasks, notes, S, seed, capture, captureTask, toggleTask, money, todayS };
+    return { loading, hasDemo, clearDemo, d, quick, greeting, heatEl, weeks, cells, tasks, notes, S, seed, capture, captureTask, toggleTask, money, todayS };
   },
 };

@@ -36,7 +36,7 @@ const App = {
     window.addEventListener('keydown', e => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); palette.value = !palette.value; }
     });
-    onMounted(async () => { await load(); refresh(); });
+    onMounted(async () => { await load(); S.ready = true; refresh(); });
     return { lang, setLang, pageKey: computed(() => view.value + dark.value + lang.value), nav, view, go, dash, dark, toggleTheme, palette, q, hits, pin, openHit, firstHit, S, openNote, refresh };
   },
 };
@@ -50,5 +50,8 @@ if (!(window.CSS && CSS.supports && CSS.supports('field-sizing', 'content'))) {
 const app = Vue.createApp(App);
 app.config.globalProperties.$t = T;
 app.component('chart-view', ChartView);
+app.component('skeleton-page', SkeletonPage);
+app.component('sk', Sk);
+app.component('sk-result', SkResult);
 for (const [k, v] of Object.entries(Views)) app.component('v-' + k, v);
 app.mount('#app');

@@ -25,7 +25,8 @@
   </nav>
   <main>
     <transition name="page" mode="out-in">
-      <component :is="'v-'+view" :key="pageKey" @go="go" @open-note="openNote" @refresh="refresh"></component>
+      <component v-if="S.ready" :is="'v-'+view" :key="pageKey" @go="go" @open-note="openNote" @refresh="refresh"></component>
+      <skeleton-page v-else :view="view" key="skeleton"></skeleton-page>
     </transition>
   </main>
   <transition name="toast">
@@ -50,6 +51,7 @@
 <script src="/static/vendor/marked.min.js"></script>
 <script src="/static/vendor/katex.min.js"></script>
 <script src="/static/js/util.js"></script>
+<script src="/static/js/skeleton.js"></script>
 <script src="/static/js/i18n.js"></script>
 <script src="/static/js/i18n-es.js"></script>
 <script src="/static/js/v-dashboard.js"></script>

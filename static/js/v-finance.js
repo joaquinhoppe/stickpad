@@ -5,8 +5,8 @@ const lineCfg = (labels, sets, title, stacked) => ({
   options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false }, plugins: { title: { display: !!title, text: title } }, scales: { y: { stacked: !!stacked } } },
 });
 const Calc = {
-  props: { title: String, desc: String },
-  template: `<div class="card"><h2>{{$t(title)}}</h2><p class="muted small" v-if="desc">{{$t(desc)}}</p><slot/></div>`,
+  props: { title: String, desc: String, loading: Boolean },
+  template: `<div class="card"><h2>{{$t(title)}}</h2><p class="muted small" v-if="desc">{{$t(desc)}}</p><slot/><sk-result v-if="loading"/></div>`,
 };
 const FIELDS = {
   template: `<div class="form"><label class="f" v-for="(f,k) in fields" :key="k">{{ $t(f[0]) }}<input type="number" step="any" v-model.number="m[k]" @keyup.enter="$emit('go')"></label></div>`,
@@ -15,7 +15,7 @@ const FIELDS = {
 
 const Compound = {
   components: { Calc, FIELDS },
-  template: `<Calc :title="$t('Compound growth')" desc="Grow a lump sum plus monthly savings; compare nominal vs inflation-adjusted value.">
+  template: `<Calc :loading="!rows.length" :title="$t('Compound growth')" desc="Grow a lump sum plus monthly savings; compare nominal vs inflation-adjusted value.">
     <FIELDS :m="m" :fields="F" @go="run"/><button class="pri" @click="run">{{ $t('Calculate') }}</button>
     <div v-if="rows.length"><div class="grid g4" style="margin:10px 0">
       <div class="tile"><div class="v">{{money(last.balance)}}</div><div class="l">{{ $t('final balance') }}</div></div>
@@ -35,7 +35,7 @@ const Compound = {
 };
 const Loan = {
   components: { Calc, FIELDS },
-  template: `<Calc :title="$t('Loan / mortgage amortization')" desc="See how extra payments cut interest and time.">
+  template: `<Calc :loading="!r" :title="$t('Loan / mortgage amortization')" desc="See how extra payments cut interest and time.">
     <FIELDS :m="m" :fields="F" @go="run"/><button class="pri" @click="run">{{ $t('Calculate') }}</button>
     <div v-if="r"><div class="grid g4" style="margin:10px 0">
       <div class="tile"><div class="v">{{money2(r.payment)}}</div><div class="l">{{ $t('monthly payment') }}</div></div>
@@ -55,7 +55,7 @@ const Loan = {
 };
 const Npv = {
   components: { Calc },
-  template: `<Calc :title="$t('NPV · IRR · Payback')" desc="Evaluate a project: enter cash flows per period (first value is usually the negative investment).">
+  template: `<Calc :loading="!r" :title="$t('NPV · IRR · Payback')" desc="Evaluate a project: enter cash flows per period (first value is usually the negative investment).">
     <div class="form"><label class="f">{{ $t('Cash flows (comma separated)') }}<input v-model="flows" class="mono"></label>
     <label class="f">{{ $t('Discount rate %') }}<input type="number" step="any" v-model.number="rate"></label></div>
     <button class="pri" @click="run">{{ $t('Calculate') }}</button>
@@ -71,7 +71,7 @@ const Npv = {
 };
 const Options = {
   components: { Calc, FIELDS },
-  template: `<Calc :title="$t('Black–Scholes option pricing')" desc="European call/put prices, Greeks and profit-at-expiry curves.">
+  template: `<Calc :loading="!r" :title="$t('Black–Scholes option pricing')" desc="European call/put prices, Greeks and profit-at-expiry curves.">
     <FIELDS :m="m" :fields="F" @go="run"/><button class="pri" @click="run">{{ $t('Price') }}</button><span class="bad small"> {{err}}</span>
     <div v-if="r"><div class="grid g4" style="margin:10px 0">
       <div class="tile"><div class="v">{{r.call}}</div><div class="l">{{ $t('call price') }}</div></div><div class="tile"><div class="v">{{r.put}}</div><div class="l">{{ $t('put price') }}</div></div>
@@ -89,7 +89,7 @@ const Options = {
 };
 const MonteCarlo = {
   components: { Calc, FIELDS },
-  template: `<Calc :title="$t('Monte Carlo portfolio simulation')" desc="Thousands of random market paths (geometric Brownian motion) show the RANGE of outcomes, not just one average.">
+  template: `<Calc :loading="!r" :title="$t('Monte Carlo portfolio simulation')" desc="Thousands of random market paths (geometric Brownian motion) show the RANGE of outcomes, not just one average.">
     <FIELDS :m="m" :fields="F" @go="run"/><button class="pri" @click="run">{{ $t('Simulate') }}</button>
     <div v-if="r"><div class="grid g4" style="margin:10px 0">
       <div class="tile"><div class="v">{{money(r.median)}}</div><div class="l">{{ $t('median outcome') }}</div></div>
@@ -113,7 +113,7 @@ const MonteCarlo = {
 };
 const Fire = {
   components: { Calc, FIELDS },
-  template: `<Calc :title="$t('Financial independence (FIRE)')" desc="Target = annual spending ÷ safe withdrawal rate (4% → 25× expenses).">
+  template: `<Calc :loading="!r" :title="$t('Financial independence (FIRE)')" desc="Target = annual spending ÷ safe withdrawal rate (4% → 25× expenses).">
     <FIELDS :m="m" :fields="F" @go="run"/><button class="pri" @click="run">{{ $t('Calculate') }}</button>
     <div v-if="r"><div class="grid g3" style="margin:10px 0"><div class="tile"><div class="v">{{money(r.target)}}</div><div class="l">{{ $t('number you need') }}</div></div>
       <div class="tile"><div class="v">{{r.years??'100+'}} {{ $t('years') }}</div><div class="l">{{ $t('until independence') }}</div></div>
@@ -136,6 +136,7 @@ const Budget = {
     <div class="row"><button class="pri" @click="add">{{ $t('Add') }}</button><label class="small">{{ $t('CSV import') }} <input type="file" accept=".csv" @change="imp"></label>
       <span class="muted small">{{ $t('columns: date, description, amount, category') }}</span></div></Calc>
     <div class="grid g2" v-if="sum"><div class="card"><chart-view :config="cfgM" :height="260"/></div><div class="card"><chart-view :config="cfgC" :height="260"/></div></div>
+    <div class="grid g2" v-else><div class="card"><sk h="260px"/></div><div class="card"><sk h="260px"/></div></div>
     <Calc :title="$t('Transactions · balance')+' '+money2(sum&&sum.balance)"><div class="row"><input v-model="f" :placeholder="$t('filter…')"><span class="muted small">{{shown.length}} {{ $t('items') }}</span></div>
       <div class="scroll"><table><tr><th>{{ $t('Date') }}</th><th>{{ $t('Description') }}</th><th>{{ $t('Category') }}</th><th class="r">{{ $t('Amount') }}</th><th></th></tr>
         <tr v-for="x in shown" :key="x.id">
