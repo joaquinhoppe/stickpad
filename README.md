@@ -16,7 +16,7 @@ A local-first workbench for **studying, research and finance**, built with **Fla
 - **Notes** – Markdown + KaTeX math, `[[wiki links]]` with backlinks, tags, templates, pinning, autosave, outline, focus mode, clickable checkboxes, embedded graphs (`![[chart:ID]]`), citations (`[@key]`), export to `.md`.
 - **Graphs** – bar/line/area/scatter/pie/doughnut/radar from pasted CSV, trend lines with R², log axes, stacked series, a safe **function plotter** (`sin(x); x^2/10`), column statistics, PNG export.
 - **Finance** – compound growth (nominal vs real), budget tracker with CSV import, portfolio with live quotes, loan amortization with extra payments, NPV/IRR/payback, Monte Carlo simulation, FIRE calculator, Black–Scholes with Greeks.
-- **Study** – SM-2 spaced-repetition flashcards (auto-generated from notes via `Q :: A` and `{{cloze}}`), Pomodoro timer that persists across pages, tasks with priorities.
+- **Study** – SM-2 spaced-repetition flashcards (auto-generated from notes via `Q :: A` and `{{cloze}}`), Pomodoro timer that persists across pages, tasks with priorities, and a subjects & marks tracker that charts progress per subject and flags the ones being left behind or over-studied.
 - **Research** – source library, APA/MLA/Chicago/BibTeX citations, bibliography export, reading-note generator.
 - **Lab** – descriptive statistics, linear regression, normal distribution explorer, grade planner, scientific calculator.
 - **Bilingual UI** – English / Spanish switcher (sidebar), including the tutorial and demo data. Glossy glass theme with light and dark modes.
