@@ -104,6 +104,7 @@ Add tasks with due dates, priority and subject. Overdue tasks turn red and appea
 ## 8. Data & backup
 
 - **Help → Export** downloads everything as JSON; **Import** merges a previous export.
+- **Delete demo data** removes only what *Load demo data* created (a banner on the Dashboard offers it too); your own notes stay. **Delete all data** wipes everything after a confirmation, so export a backup first.
 - The database is a single file: `data/stickpad.db`. Copy it to back up. Set `STICKPAD_DB=/path/file.db` to move it.
 - Run on another port: `PORT=8080 python app.py`.
 

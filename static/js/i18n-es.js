@@ -156,6 +156,12 @@ window.ES = {
   'Search the tutorial…': 'Buscar en el tutorial…', 'Collapse all': 'Contraer todo', 'Expand all': 'Expandir todo',
   'Click a task to complete it.': 'Haz clic en una tarea para completarla.', 'Task completed': 'Tarea completada', 'Undo': 'Deshacer',
   'Task deleted': 'Tarea eliminada', 'Cancel': 'Cancelar', 'Saved': 'Guardado', 'Delete this card?': '¿Eliminar esta tarjeta?',
+  'Delete demo data': 'Borrar datos de ejemplo', 'Delete all data': 'Borrar todos los datos',
+  'Delete the demo data? Your own notes and data are kept.': '¿Borrar los datos de ejemplo? Tus propias notas y datos se conservan.',
+  'Demo data deleted': 'Datos de ejemplo borrados',
+  'No demo data found. Use "Delete all data" to clear everything.': 'No se encontraron datos de ejemplo. Usa «Borrar todos los datos» para vaciarlo todo.',
+  'Delete ALL your data (notes, graphs, cards, transactions…)? This cannot be undone. Tip: export a backup first.': '¿Borrar TODOS tus datos (notas, gráficos, tarjetas, movimientos…)? No se puede deshacer. Consejo: exporta una copia de seguridad antes.',
+  'All data deleted ({n})': 'Todos los datos borrados ({n})', 'You are viewing demo data.': 'Estás viendo datos de ejemplo.',
   'Value': 'Valor', 'deck': 'mazo',
   '{n} items imported': '{n} elementos importados',
 };

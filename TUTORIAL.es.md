@@ -104,6 +104,7 @@ Añade tareas con fecha, prioridad y asignatura. Las vencidas se ponen en rojo y
 ## 8. Datos y copias de seguridad
 
 - **Ayuda → Exportar** descarga todo en JSON; **Importar** fusiona una exportación anterior.
+- **Borrar datos de ejemplo** elimina solo lo que creó *Cargar datos de ejemplo* (el Panel también ofrece el botón en un aviso); tus notas se conservan. **Borrar todos los datos** lo vacía todo tras una confirmación, así que exporta antes una copia de seguridad.
 - La base de datos es un único archivo: `data/stickpad.db`. Cópialo para hacer una copia de seguridad. Define `STICKPAD_DB=/ruta/archivo.db` para moverlo.
 - Para usar otro puerto: `PORT=8080 python app.py`.
 

@@ -6,6 +6,8 @@ Views.help = {
     <button @click="exp">{{ $t('Export all data (JSON)') }}</button>
     <label class="filebtn">{{ $t('Import') }}<input type="file" accept=".json" @change="imp" hidden></label>
     <button @click="seed">{{ $t('Load demo data') }}</button>
+    <button class="danger" @click="delDemo">{{ $t('Delete demo data') }}</button>
+    <button class="danger" @click="delAll">{{ $t('Delete all data') }}</button>
     <button @click="toggleAll">{{ allOpen ? $t('Collapse all') : $t('Expand all') }}</button>
   </div>
   <div class="chips" v-if="sections.length">
@@ -39,6 +41,14 @@ Views.help = {
     const exp = () => { location.href = '/api/export'; };
     const imp = async e => { const r = await api('import', 'POST', JSON.parse(await e.target.files[0].text())); await load(); toast(T('{n} items imported', { n: r.imported })); };
     const seed = async () => { const r = await api('seed', 'POST', { lang: lang.value }); await load(); toast(r.seeded ? T('Demo data loaded') : T('Demo data only loads into an empty notebook')); };
-    return { q, intro, sections, shown, isOpen, toggle, allOpen, toggleAll, jump, exp, imp, seed };
+    const delDemo = async () => {
+      if (!confirm(T('Delete the demo data? Your own notes and data are kept.'))) return;
+      const r = await api('demo', 'DELETE'); await load(); toast(r.deleted ? T('Demo data deleted') : T('No demo data found. Use "Delete all data" to clear everything.'));
+    };
+    const delAll = async () => {
+      if (!confirm(T('Delete ALL your data (notes, graphs, cards, transactions…)? This cannot be undone. Tip: export a backup first.'))) return;
+      const r = await api('all?confirm=yes', 'DELETE'); await load(); toast(T('All data deleted ({n})', { n: r.deleted }));
+    };
+    return { delDemo, delAll, q, intro, sections, shown, isOpen, toggle, allOpen, toggleAll, jump, exp, imp, seed };
   },
 };

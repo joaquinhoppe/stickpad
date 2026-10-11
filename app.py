@@ -131,8 +131,13 @@ def update_doc(kind, i):
     d = get_doc(i)
     if not d or d["kind"] != kind:
         return jsonify(error="not found"), 404
-    meta = {k: d.pop(k) for k in ("id", "kind", "created", "updated")}
-    d.update(clean(request.get_json(silent=True)))
+    for k in ("id", "kind", "created", "updated"):
+        d.pop(k)
+    new = clean(request.get_json(silent=True))
+    content = ("title", "body", "text", "front", "back", "description", "name")
+    if d.get("demo") and any(k in new and new[k] != d.get(k) for k in content):
+        d.pop("demo")  # the user rewrote it, so it is now theirs
+    d.update(new)
     save_doc(i, d)
     return jsonify(get_doc(i))
 
@@ -625,6 +630,48 @@ def import_all():
                 insert(kind, clean(d))
                 n += 1
     return jsonify(imported=n)
+
+
+def legacy_demo_signatures():
+    """Demo items loaded before they were flagged: recognise them by their seed content."""
+    from seed import load
+    sig = set()
+    key = {"note": "title", "card": "front", "source": "title", "task": "text", "chart": "title", "holding": "symbol"}
+
+    def rec(kind, data):
+        if kind in key:
+            sig.add((kind, data[key[kind]]))
+
+    for lang in ("en", "es"):
+        load(rec, lang)
+    return sig, key
+
+
+@app.delete("/api/demo")
+def delete_demo():
+    """Remove only the items loaded by 'Load demo data'."""
+    with db() as c:
+        rows = [(r["id"], r["kind"], json.loads(r["data"])) for r in c.execute("SELECT id, kind, data FROM docs")]
+        ids = [i for i, _, d in rows if d.get("demo")]
+        if not ids:  # data seeded by an older version carries no flag
+            sig, key = legacy_demo_signatures()
+            for i, kind, d in rows:
+                if kind in key and (kind, d.get(key[kind])) in sig:
+                    ids.append(i)
+                elif kind == "txn" and (d.get("description") == d.get("category") or
+                                        (d.get("description") in ("Salary", "Nómina") and d.get("amount") == 2600)):
+                    ids.append(i)
+        c.executemany("DELETE FROM docs WHERE id=?", [(i,) for i in ids])
+    return jsonify(deleted=len(ids))
+
+
+@app.delete("/api/all")
+def delete_all():
+    if request.args.get("confirm") != "yes":
+        return jsonify(error="confirmation required"), 400
+    with db() as c:
+        n = c.execute("DELETE FROM docs").rowcount
+    return jsonify(deleted=n)
 
 
 @app.post("/api/seed")

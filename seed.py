@@ -3,7 +3,8 @@ import random
 from datetime import date, timedelta
 
 
-def load(insert, lang="en"):
+def load(raw_insert, lang="en"):
+    insert = lambda kind, data: raw_insert(kind, {**data, "demo": True})
     es = lang == "es"
     L = lambda en, sp: sp if es else en
     today = date.today()
