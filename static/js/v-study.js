@@ -112,7 +112,7 @@ const Pomodoro = {
   setup() {
     const mm = computed(() => String(Math.floor(PT.left / 60)).padStart(2, '0')), ss = computed(() => String(PT.left % 60).padStart(2, '0'));
     const pct = computed(() => 100 - PT.left / ((PT.mode === 'focus' ? PT.focus : PT.brk) * 60) * 100);
-    const subjects = computed(() => [...new Set(S.session.map(s => s.subject))]);
+    const subjects = computed(() => [...new Set([...S.subject.map(s => s.name), ...S.session.map(s => s.subject)])]);
     const total = computed(() => S.session.reduce((a, s) => a + s.minutes, 0));
     const bySubject = computed(() => { const m = {}; S.session.forEach(s => m[s.subject] = (m[s.subject] || 0) + s.minutes); return Object.entries(m).sort((a, b) => b[1] - a[1]); });
     const cfg = computed(() => {
@@ -126,7 +126,7 @@ const Pomodoro = {
 const Tasks = {
   template: `<div class="grid g2"><div class="card"><div class="form"><label class="f">{{ $t('Task') }}<input v-model="t.text" @keyup.enter="add"></label><label class="f">{{ $t('Due') }}<input type="date" v-model="t.due"></label>
       <label class="f">{{ $t('Priority') }}<select v-model="t.priority"><option value="high">{{ $t('High') }}</option><option value="med">{{ $t('Medium') }}</option><option value="low">{{ $t('Low') }}</option></select></label>
-      <label class="f">{{ $t('Subject') }}<input v-model="t.subject" :placeholder="$t('e.g. Statistics')" @keyup.enter="add"></label></div>
+      <label class="f">{{ $t('Subject') }}<input v-model="t.subject" :placeholder="$t('e.g. Statistics')" list="tsubs" @keyup.enter="add"></label><datalist id="tsubs"><option v-for="n in S.subject" :key="n.id" :value="n.name"></option></datalist></div>
       <button class="pri" @click="add">{{ $t('Add task') }}</button>
       <div class="row" style="margin-top:12px"><button class="sm" :class="{on:f==='open'}" @click="f='open'">{{ $t('Open') }}</button><button class="sm" :class="{on:f==='done'}" @click="f='done'">{{ $t('Done') }}</button><button class="sm" :class="{on:f==='all'}" @click="f='all'">{{ $t('All') }}</button>
         <span class="muted small">{{ $t('Click a task to complete it.') }}</span></div>
@@ -141,7 +141,7 @@ const Tasks = {
           <div v-else class="row" style="flex:1" @click.stop>
             <input v-model="draft.text" style="flex:2;min-width:140px" @keyup.enter="saveEd(x)" @keyup.esc="ed=null"><input type="date" v-model="draft.due">
             <select v-model="draft.priority"><option value="high">{{ $t('High') }}</option><option value="med">{{ $t('Medium') }}</option><option value="low">{{ $t('Low') }}</option></select>
-            <input v-model="draft.subject" :placeholder="$t('Subject')" style="width:110px">
+            <input v-model="draft.subject" :placeholder="$t('Subject')" style="width:110px" list="tsubs">
             <button class="sm pri" @click="saveEd(x)">{{ $t('Save') }}</button><button class="sm" @click="ed=null">{{ $t('Cancel') }}</button>
           </div>
         </div>
@@ -165,7 +165,7 @@ const Tasks = {
   },
 };
 Views.study = {
-  components: { Cards, Pomodoro, Tasks },
+  components: { Cards, Pomodoro, Tasks, Subjects },
   template: `<div><h1>{{ $t('Study') }}</h1><div class="tabs"><button v-for="t in tabs" :key="t[0]" :class="{on:tab===t[0]}" @click="tab=t[0]">{{ $t(t[1]) }}</button></div><component :is="tab"/></div>`,
-  setup() { const tabs = [['Cards', 'Flashcards'], ['Pomodoro', 'Focus timer'], ['Tasks', 'Tasks']]; const tab = ref(localStorage.stab || 'Cards'); watch(tab, v => localStorage.stab = v); return { tabs, tab }; },
+  setup() { const tabs = [['Cards', 'Flashcards'], ['Pomodoro', 'Focus timer'], ['Tasks', 'Tasks'], ['Subjects', 'Subjects & marks']]; const tab = ref(localStorage.stab || 'Cards'); watch(tab, v => localStorage.stab = v); return { tabs, tab }; },
 };

@@ -85,6 +85,18 @@ Pomodoro with custom lengths and a subject label. The timer **keeps running whil
 ### Tasks
 Add tasks with due dates, priority and subject. Overdue tasks turn red and appear on the dashboard.
 
+### Subjects & marks
+Open **Study → Subjects & marks**.
+
+1. Add your **subjects** with a target percentage (the average you want in each).
+2. Record every **mark** with its score, what it is out of (10, 100…), a weight (an exam can count more than a quiz) and a date. Marks are converted to percentages.
+3. Read the results:
+   - **Marks over time** (with optional trend lines) shows who is improving and who is slipping.
+   - **Study time vs. where you need it** compares the share of your focus time each subject got in the last 30 days with the share it *should* get. The recommendation grows with the gap to your target and with falling marks.
+   - **Weekly focus minutes** shows how your time moved across subjects.
+   - The **Summary** table and the highlighted cards flag subjects that *need attention* (low or falling marks but little study time) and subjects that are *over-focused* (already above target but taking a lot of time).
+4. For the time analysis, start Pomodoro sessions with the **same subject name** (the Focus timer suggests your subjects).
+
 ## 6. Research
 
 1. **＋ Source**, fill in authors as `Last, First; Last, First`, year, title, journal, DOI.

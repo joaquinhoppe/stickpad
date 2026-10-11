@@ -204,3 +204,35 @@ textarea.fill,.split textarea{field-sizing:fixed;height:100%;max-height:none}
   .side a{flex:none;padding:7px 11px}.brand{padding:0 8px 0 4px}.brand span{display:none}.side kbd{display:none}
   .lang{flex:none;margin:0 0 0 6px}
 }
+
+/* ---------- more breathing room between controls ---------- */
+.row{gap:10px 10px}
+.grid{gap:16px}.card{margin-bottom:16px;padding:18px}
+.form{gap:12px;margin-bottom:12px}
+button{padding:8px 15px;min-height:36px}
+button.sm{padding:4px 12px;min-height:30px}
+button+button,label.filebtn+button,button+label.filebtn{margin-left:8px}
+.row>button+button,.row>button+label,.row>label+button,.tabs>button+button,.lang>button+button,.row>select+button,.row>button+select{margin-left:0}
+.tabs{gap:6px;padding:5px}.tabs button{padding:8px 16px}
+.actions{white-space:nowrap}.actions>button+button{margin-left:8px}
+td button+button{margin-left:8px}
+.task{gap:12px;padding:10px 8px}
+.task button{flex:none}.task button+button{margin-left:0}
+.pill{margin-right:6px}
+.nitem{margin-bottom:9px}
+.chips{gap:10px}
+.palette .hit{padding:11px 18px}
+.side a{padding:10px 13px}.side{gap:5px}
+.editor .row{gap:10px}
+/* ---------- subjects & marks ---------- */
+.gap-b{margin-bottom:16px}
+.srow{display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.srow .grow-in{flex:1;min-width:0}
+.sdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 5px currentColor}
+.insight{border-left:5px solid var(--accent);margin-bottom:0}
+.insight h3{margin:0 0 6px}
+.insight.bad h3{color:var(--bad)}.insight.warn h3{color:var(--warn)}.insight.good h3{color:var(--good)}
+.pill.st-neglected{color:var(--bad);background:rgba(229,72,77,.12)}
+.pill.st-over{color:var(--warn);background:rgba(224,162,26,.14)}
+.pill.st-ok{color:var(--good);background:rgba(22,160,104,.12)}
+.pill.st-no_time{color:var(--muted)}

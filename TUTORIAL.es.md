@@ -85,6 +85,18 @@ Pomodoro con duraciones personalizables y una etiqueta de asignatura. El tempori
 ### Tareas
 Añade tareas con fecha, prioridad y asignatura. Las vencidas se ponen en rojo y aparecen en el panel.
 
+### Asignaturas y notas
+Abre **Estudio → Asignaturas y notas**.
+
+1. Añade tus **asignaturas** con un porcentaje objetivo (la media que quieres en cada una).
+2. Registra cada **nota** con su puntuación, sobre cuánto es (10, 100…), un peso (un examen puede contar más que un test) y una fecha. Las notas se convierten a porcentaje.
+3. Interpreta los resultados:
+   - **Evolución de las notas** (con líneas de tendencia opcionales) muestra quién mejora y quién se está quedando atrás.
+   - **Tiempo de estudio vs. dónde lo necesitas** compara el porcentaje de tu tiempo de enfoque que recibió cada asignatura en los últimos 30 días con el que *debería* recibir. La recomendación crece con la distancia a tu objetivo y con las notas a la baja.
+   - **Minutos de enfoque por semana** muestra cómo se movió tu tiempo entre asignaturas.
+   - La tabla **Resumen** y las tarjetas destacadas señalan las asignaturas que *necesitan atención* (notas bajas o a la baja con poco tiempo de estudio) y las que tienen *demasiado enfoque* (ya por encima del objetivo pero con mucho tiempo).
+4. Para el análisis de tiempo, inicia las sesiones Pomodoro con el **mismo nombre de asignatura** (el Temporizador te sugiere tus asignaturas).
+
 ## 6. Investigación
 
 1. **＋ Fuente**, rellena los autores como `Apellido, Nombre; Apellido, Nombre`, año, título, revista, DOI.

@@ -62,7 +62,7 @@ Views.dashboard = {
     });
     const tasks = computed(() => S.task.filter(t => !t.done || recentTasks.has(t.id)).sort((a, b) => (a.due || '9') < (b.due || '9') ? -1 : 1).slice(0, 6));
     const notes = computed(() => [...S.note].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.updated.localeCompare(a.updated)).slice(0, 6));
-    const hasDemo = computed(() => ['note', 'card', 'task', 'source', 'chart', 'txn'].some(k => S[k].some(x => x.demo)));
+    const hasDemo = computed(() => ['note', 'card', 'task', 'source', 'chart', 'txn', 'subject', 'mark'].some(k => S[k].some(x => x.demo)));
     const clearDemo = async () => {
       if (!confirm(T('Delete the demo data? Your own notes and data are kept.'))) return;
       await api('demo', 'DELETE'); await load(); refresh(); toast(T('Demo data deleted'));

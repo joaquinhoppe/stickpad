@@ -213,3 +213,24 @@ Usa la calculadora de interés compuesto con 0% de rentabilidad y 3% de inflaci�
     insert("holding", dict(symbol="MSFT", shares=3, cost=300))
     for i in range(1, 12):
         insert("log", dict(date=d(-i), type="review", amount=rnd.randint(0, 12)))
+
+    # subjects, marks and study sessions (for the "Subjects & marks" tab)
+    names = [L("Statistics", "Estadística"), L("Finance", "Finanzas"), L("Research", "Investigación")]
+    colors = ["#4e79a7", "#f28e2b", "#59a14f"]
+    targets = [75, 70, 70]
+    subs = [insert("subject", dict(name=n, color=c, target=t)) for n, c, t in zip(names, colors, targets)]
+    mx = L(100, 10)
+    series = [  # (days ago, score out of 10) per subject; Statistics is slipping, Finance is strong
+        [(63, 8.5), (42, 7.5), (21, 6.8), (6, 5.9)],
+        [(56, 8.0), (35, 8.4), (14, 8.8), (3, 9.0)],
+        [(49, 6.5), (28, 6.8), (10, 7.0)],
+    ]
+    kinds = [L("Exam", "Examen"), L("Homework", "Tarea"), L("Quiz", "Test")]
+    for sb, ser in zip(subs, series):
+        for k, (ago, sc) in enumerate(ser):
+            insert("mark", dict(subject=sb["id"], title=f"{kinds[k % 3]} {k + 1}", score=round(sc * mx / 10, 1), max=mx,
+                                weight=2 if k % 3 == 0 else 1, date=d(-ago)))
+    plan = [(names[1], 50), (names[2], 30), (names[0], 15)]  # (subject, minutes) cycling, so Finance gets most time
+    for i in range(0, 28, 2):
+        nm, mins = plan[(i // 2) % 3] if (i // 2) % 5 else plan[0]
+        insert("session", dict(date=d(-i), minutes=mins, subject=nm))

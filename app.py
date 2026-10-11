@@ -16,7 +16,7 @@ from flask import Flask, jsonify, request, send_from_directory, Response
 BASE = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.environ.get("STICKPAD_DB", os.path.join(BASE, "data", "stickpad.db"))
 KINDS = {"note", "chart", "card", "source", "txn", "task", "session", "holding",
-         "log", "budget", "goal", "deck", "scenario"}
+         "log", "budget", "goal", "deck", "scenario", "subject", "mark"}
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -521,6 +521,80 @@ def regression():
                    slope_se=se / math.sqrt(sxx),
                    t_stat=(slope / (se / math.sqrt(sxx))) if se else None,
                    forecast=[dict(x=x, y=icpt + slope * x) for x in (min(xs), max(xs))])
+
+
+
+# ------------------------------------------------- subjects, marks & balance
+@app.get("/api/subjects/analysis")
+def subjects_analysis():
+    """Per-subject average, trend and study-time balance.
+
+    Recommended attention is proportional to how far a subject is below its
+    target plus how fast it is falling; it is compared with the share of focus
+    minutes (last 30 days) the subject actually received.
+    """
+    subs, marks, sessions = all_of("subject"), all_of("mark"), all_of("session")
+    today_d = date.today()
+    since = (today_d - timedelta(days=30)).isoformat()
+    rows = []
+    for sb in subs:
+        ms = sorted((m for m in marks if m.get("subject") == sb["id"]), key=lambda m: m.get("date", ""))
+        pts = []
+        for m in ms:
+            mx = f(m.get("max"), 100) or 100
+            pts.append((m.get("date", ""), f(m.get("score")) / mx * 100, f(m.get("weight"), 1) or 1))
+        avg = sum(p[1] * p[2] for p in pts) / sum(p[2] for p in pts) if pts else None
+        slope = None  # percentage points per 30 days
+        if len(pts) >= 2:
+            xs = [datetime.fromisoformat(p[0]).toordinal() if p[0] else 0 for p in pts]
+            ys = [p[1] for p in pts]
+            mx_, my_ = sum(xs) / len(xs), sum(ys) / len(ys)
+            sxx = sum((x - mx_) ** 2 for x in xs)
+            if sxx:
+                slope = sum((x - mx_) * (y - my_) for x, y in zip(xs, ys)) / sxx * 30
+        name = (sb.get("name") or "").strip().lower()
+        mine = [x for x in sessions if (x.get("subject") or "").strip().lower() == name]
+        mins30 = sum(f(x.get("minutes")) for x in mine if x.get("date", "") >= since)
+        target = f(sb.get("target"), 70)
+        gap = max(0.0, target - avg) if avg is not None else 10.0
+        decline = max(0.0, -slope) if slope is not None else 0.0
+        rows.append(dict(id=sb["id"], name=sb.get("name"), color=sb.get("color"), target=target,
+                         avg=None if avg is None else round(avg, 1), n=len(pts),
+                         last=None if not pts else round(pts[-1][1], 1),
+                         slope=None if slope is None else round(slope, 1),
+                         minutes=round(mins30), need=gap + decline + 5))
+    total_min = sum(r["minutes"] for r in rows)
+    total_need = sum(r["need"] for r in rows) or 1
+    for r in rows:
+        r["recommended"] = round(r.pop("need") / total_need * 100, 1)
+        r["actual"] = round(r["minutes"] / total_min * 100, 1) if total_min else 0.0
+        below = r["avg"] is not None and r["avg"] < r["target"]
+        falling = r["slope"] is not None and r["slope"] < -2
+        if not total_min:
+            r["status"] = "no_time"
+        elif r["actual"] < r["recommended"] * 0.6 and (below or falling or r["avg"] is None):
+            r["status"] = "neglected"
+        elif r["actual"] > r["recommended"] * 1.6 and r["avg"] is not None and r["avg"] >= r["target"]:
+            r["status"] = "over"
+        else:
+            r["status"] = "ok"
+    # weekly minutes per subject, last 8 weeks (Monday-based)
+    monday = today_d - timedelta(days=today_d.weekday())
+    weeks = [(monday - timedelta(weeks=i)) for i in range(7, -1, -1)]
+    weekly = []
+    for w in weeks:
+        end = w + timedelta(days=7)
+        entry = {"week": w.isoformat()}
+        for sb in subs:
+            name = (sb.get("name") or "").strip().lower()
+            entry[str(sb["id"])] = round(sum(f(x.get("minutes")) for x in sessions
+                                              if (x.get("subject") or "").strip().lower() == name
+                                              and w.isoformat() <= x.get("date", "") < end.isoformat()))
+        weekly.append(entry)
+    allpts = [(f(m.get("score")) / (f(m.get("max"), 100) or 100) * 100, f(m.get("weight"), 1) or 1) for m in marks]
+    overall = sum(a * w for a, w in allpts) / sum(w for _, w in allpts) if allpts else None
+    return jsonify(subjects=rows, weekly=weekly, total_minutes=round(total_min),
+                   overall=None if overall is None else round(overall, 1))
 
 
 # ---------------------------------------------------------------- dashboard
