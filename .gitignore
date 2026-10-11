@@ -1,3 +1,8 @@
 .venv/
 data/
 __pycache__/
+build/
+dist/
+AppDir/
+*.AppImage
+*.spec

@@ -8,8 +8,10 @@ Views.help = {
     <button @click="seed">{{ $t('Load demo data') }}</button>
     <button class="danger" @click="delDemo">{{ $t('Delete demo data') }}</button>
     <button class="danger" @click="delAll">{{ $t('Delete all data') }}</button>
+    <button @click="toggleLog">{{ $t('Changelog') }}</button>
     <button @click="toggleAll">{{ allOpen ? $t('Collapse all') : $t('Expand all') }}</button>
   </div>
+  <div class="card md" v-if="showLog"><div class="row sp"><h2 style="margin:0">{{ $t('Changelog') }}</h2><button class="sm" @click="showLog=false">{{ $t('Hide') }}</button></div><div v-html="logHtml"></div></div>
   <div class="chips" v-if="sections.length">
     <a v-for="(s,i) in sections" :key="i" class="chip" href="#" @click.prevent="jump(i)">{{ s.title }}</a>
   </div>
@@ -50,6 +52,11 @@ Views.help = {
       if (!confirm(T('Delete ALL your data (notes, graphs, cards, transactions…)? This cannot be undone. Tip: export a backup first.'))) return;
       const r = await api('all?confirm=yes', 'DELETE'); await load(); toast(T('All data deleted ({n})', { n: r.deleted }));
     };
-    return { delDemo, delAll, q, intro, sections, shown, isOpen, toggle, allOpen, toggleAll, jump, exp, imp, seed };
+    const showLog = ref(false), logHtml = ref('');
+    const toggleLog = async () => {
+      showLog.value = !showLog.value;
+      if (showLog.value && !logHtml.value) logHtml.value = renderMarkdown(await (await fetch('/changelog.md')).text(), {});
+    };
+    return { showLog, logHtml, toggleLog, delDemo, delAll, q, intro, sections, shown, isOpen, toggle, allOpen, toggleAll, jump, exp, imp, seed };
   },
 };

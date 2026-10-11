@@ -7,6 +7,7 @@ import os
 import random
 import re
 import sqlite3
+import time
 import statistics
 import urllib.error
 import urllib.parse
@@ -19,6 +20,12 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.environ.get("STICKPAD_DB", os.path.join(BASE, "data", "stickpad.db"))
 KINDS = {"note", "chart", "card", "source", "txn", "task", "session", "holding",
          "log", "budget", "goal", "deck", "scenario", "subject", "mark"}
+
+try:
+    VERSION = open(os.path.join(BASE, "VERSION")).read().strip()
+except OSError:
+    VERSION = "dev"
+PRESENCE = {"last_ping": 0.0, "bye": 0.0}  # lets the desktop launcher notice when its window was closed
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
 
@@ -102,7 +109,25 @@ def index():
 
 @app.get("/favicon.ico")
 def favicon():
+    return send_from_directory(os.path.join(BASE, "static"), "icon.png", mimetype="image/png")
+
+
+@app.get("/api/ping")
+def ping():
+    PRESENCE["last_ping"] = time.time()
+    PRESENCE["bye"] = 0.0
+    return jsonify(app="stickpad", version=VERSION)
+
+
+@app.post("/api/bye")
+def bye():
+    PRESENCE["bye"] = time.time()
     return "", 204
+
+
+@app.get("/changelog.md")
+def changelog():
+    return send_from_directory(BASE, "CHANGELOG.md", mimetype="text/markdown")
 
 
 @app.get("/tutorial.md")

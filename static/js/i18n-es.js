@@ -240,6 +240,7 @@ window.ES = {
   'API key removed': 'API key eliminada',
   'Add an API key (API settings) to fetch live prices, or type prices manually.': 'Añade una API key (Ajustes de API) para obtener precios en vivo, o escribe los precios a mano.',
   '{n} symbols failed: {e}. You can type prices manually.': '{n} símbolos fallaron: {e}. Puedes escribir los precios a mano.',
+  'Changelog': 'Registro de cambios',
   'Value': 'Valor', 'deck': 'mazo',
   '{n} items imported': '{n} elementos importados',
 };

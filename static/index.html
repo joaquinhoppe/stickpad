@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>StickPad — notes, graphs, finance &amp; study</title>
+<link rel="icon" type="image/png" href="/static/icon.png">
 <link rel="stylesheet" href="/static/vendor/katex.min.css">
 <link rel="stylesheet" href="/static/css/app.css">
 </head>
@@ -22,6 +23,7 @@
       <button :class="{on: lang==='en'}" @click="setLang('en')">EN</button>
       <button :class="{on: lang==='es'}" @click="setLang('es')">ES</button>
     </div>
+    <div class="ver" v-if="version">v{{version}}</div>
   </nav>
   <main>
     <transition name="page" mode="out-in">

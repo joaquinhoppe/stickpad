@@ -2,7 +2,20 @@
 
 A local-first workbench for **studying, research and finance**, built with **Flask** (API, SQLite, finance/stat maths) and **Vue 3** (no build step; all libraries are vendored so it works offline).
 
-## Run
+## Download (Linux AppImage)
+
+Grab `StickPad-<version>-x86_64.AppImage` from the [Releases page](https://github.com/joaquinhoppe/stickpad/releases), then:
+
+```bash
+chmod +x StickPad-*.AppImage
+./StickPad-*.AppImage
+```
+
+It opens in its own window (uses Chrome/Chromium/Brave/Edge in app mode if installed, otherwise your default browser) and exits when you close it. Your data is stored in `~/.local/share/StickPad/stickpad.db`, so it survives updates; back it up by copying that file. Built on Ubuntu 26.04 (glibc 2.43), so it needs a reasonably recent Linux.
+
+Build it yourself with `./scripts/build_appimage.sh` (needs Python 3 and internet on the first run).
+
+## Run from source
 
 ```bash
 ./run.sh            # or: pip install -r requirements.txt && python app.py
@@ -33,3 +46,7 @@ static/         Vue 3 SPA (index.html, js/v-*.js views, css, vendor/ libs)
 TUTORIAL.md / TUTORIAL.es.md   user tutorial (EN / ES)
 static/js/i18n*.js            translation engine + Spanish dictionary
 ```
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md). Releases follow semantic versioning; the current version is in `VERSION`.

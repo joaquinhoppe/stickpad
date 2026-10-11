@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=StickPad
+GenericName=Notes and study workbench
+Comment=Notes, graphs, finance and study tools in one local app
+Exec=stickpad
+Icon=stickpad
+Categories=Office;Education;Finance;
+StartupWMClass=StickPad
+Terminal=false

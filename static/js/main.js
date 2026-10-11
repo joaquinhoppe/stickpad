@@ -36,8 +36,13 @@ const App = {
     window.addEventListener('keydown', e => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); palette.value = !palette.value; }
     });
+    const version = ref('');
+    // Presence heartbeat: lets the desktop build exit once its window is closed.
+    const beat = () => api('ping').then(r => { version.value = r.version; }).catch(() => { });
+    beat(); setInterval(beat, 15000);
+    window.addEventListener('pagehide', () => navigator.sendBeacon && navigator.sendBeacon('/api/bye'));
     onMounted(async () => { await load(); S.ready = true; refresh(); });
-    return { lang, setLang, pageKey: computed(() => view.value + dark.value + lang.value), nav, view, go, dash, dark, toggleTheme, palette, q, hits, pin, openHit, firstHit, S, openNote, refresh };
+    return { version, lang, setLang, pageKey: computed(() => view.value + dark.value + lang.value), nav, view, go, dash, dark, toggleTheme, palette, q, hits, pin, openHit, firstHit, S, openNote, refresh };
   },
 };
 // Textareas grow with their content (CSS field-sizing where supported, JS fallback otherwise).
