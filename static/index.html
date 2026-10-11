@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StickPad — notes, graphs, finance &amp; study</title>
+<link rel="stylesheet" href="/static/vendor/katex.min.css">
+<link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body>
+<div id="app" v-cloak>
+  <nav class="side">
+    <div class="brand"><i class="logo"></i><span>StickPad</span></div>
+    <a v-for="n in nav" :key="n.id" :class="{on: view===n.id}" @click="go(n.id)">
+      {{ $t(n.label) }}
+      <b v-if="n.id==='study' && dash.due" class="badge">{{dash.due}}</b>
+    </a>
+    <div class="grow"></div>
+    <a @click="palette=true">{{ $t('Search') }} <kbd>Ctrl K</kbd></a>
+    <a @click="toggleTheme">{{ dark ? $t('Light mode') : $t('Dark mode') }}</a>
+    <div class="lang" role="group" aria-label="Language">
+      <button :class="{on: lang==='en'}" @click="setLang('en')">EN</button>
+      <button :class="{on: lang==='es'}" @click="setLang('es')">ES</button>
+    </div>
+  </nav>
+  <main>
+    <transition name="page" mode="out-in">
+      <component :is="'v-'+view" :key="pageKey" @go="go" @open-note="openNote" @refresh="refresh"></component>
+    </transition>
+  </main>
+  <transition name="toast">
+    <div v-if="S.toast" class="toast">{{S.toast}}
+      <button v-if="S.toastAct" class="toast-act" @click="S.toastAct.fn(); S.toast=''">{{S.toastAct.label}}</button></div>
+  </transition>
+  <transition name="fade"><div v-if="palette" class="overlay" @click.self="palette=false">
+    <div class="palette">
+      <input ref="pin" v-model="q" :placeholder="$t('Search notes, cards, sources, tasks… or jump to a page')" @keydown.esc="palette=false" @keydown.enter="firstHit">
+      <div class="hits">
+        <div v-for="n in nav.filter(x=>q && $t(x.label).toLowerCase().includes(q.toLowerCase()))" class="hit" @click="go(n.id);palette=false">
+          {{ $t('Go to') }} <b>{{ $t(n.label) }}</b></div>
+        <div v-for="h in hits" :key="h.kind+h.id" class="hit" @click="openHit(h)">
+          <span class="pill">{{ $t(h.kind) }}</span> <b>{{h.title}}</b> <small>…{{h.snippet}}…</small></div>
+        <div v-if="q && !hits.length" class="muted pad">{{ $t('No matches') }}</div>
+      </div>
+    </div>
+  </div></transition>
+</div>
+<script src="/static/vendor/vue.global.prod.js"></script>
+<script src="/static/vendor/chart.umd.js"></script>
+<script src="/static/vendor/marked.min.js"></script>
+<script src="/static/vendor/katex.min.js"></script>
+<script src="/static/js/util.js"></script>
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/i18n-es.js"></script>
+<script src="/static/js/v-dashboard.js"></script>
+<script src="/static/js/v-notes.js"></script>
+<script src="/static/js/v-charts.js"></script>
+<script src="/static/js/v-finance.js"></script>
+<script src="/static/js/v-study.js"></script>
+<script src="/static/js/v-research.js"></script>
+<script src="/static/js/v-lab.js"></script>
+<script src="/static/js/v-help.js"></script>
+<script src="/static/js/main.js"></script>
+</body>
+</html>
