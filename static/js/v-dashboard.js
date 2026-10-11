@@ -4,9 +4,9 @@ Views.dashboard = {
   template: `
 <div>
   <h1>{{greeting}} </h1>
-  <div class="card" v-if="!S.note.length">
-    <b>{{ $t('Your notebook is empty.') }}</b> {{ $t('Load demo notes, flashcards, transactions and charts to explore?') }}
-    <button class="pri" @click="seed">{{ $t('Load demo data') }}</button> <button @click="$emit('go','help')">{{ $t('Read the tutorial') }}</button>
+  <div class="card row sp" v-if="!S.note.length">
+    <div><b>{{ $t('Your notebook is empty.') }}</b><div class="muted">{{ $t('Load demo notes, flashcards, transactions and charts to explore?') }}</div></div>
+    <div class="row"><button class="pri" @click="seed">{{ $t('Load demo data') }}</button><button @click="$emit('go','help')">{{ $t('Read the tutorial') }}</button></div>
   </div>
   <div class="card row sp" v-if="hasDemo"><span>{{ $t('You are viewing demo data.') }}</span>
     <button class="danger" @click="clearDemo">{{ $t('Delete demo data') }}</button></div>
