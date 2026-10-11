@@ -63,7 +63,7 @@ All calculators recompute with *Enter* or their button.
 
 - **Compound**: lump sum + monthly savings, with an inflation-adjusted ("real") line. Shows the rule-of-72 doubling time.
 - **Budget**: log income (+) and expenses (−) with categories; monthly cash-flow bars and a spending doughnut update automatically. Import bank CSVs (`date,description,amount,category`).
-- **Portfolio**: add tickers (`AAPL`, or `sap.de` for non-US), shares and cost. *Refresh prices* pulls daily quotes from stooq.com; offline? type prices manually. "chart" shows price history. Allocation doughnut included.
+- **Portfolio**: add tickers (`AAPL`), shares and cost. For live prices open **API settings**, pick a provider (**Finnhub**, **Alpha Vantage** or **Twelve Data**; all have a free plan), paste *your own* API key and press **Save & test**. The key is checked before it is saved, stays only in your local database and is never included in exports. Then *Refresh prices* fetches quotes and "chart" shows price history (history needs Alpha Vantage or Twelve Data). No key? Type prices by hand. Allocation doughnut included.
 - **Loan**: payment, total interest and the whole schedule; add an *Extra / month* to see interest saved.
 - **NPV/IRR**: cash flows like `-10000, 3000, 4000, 4500` at a discount rate → NPV with accept/reject, IRR and payback period.
 - **Monte Carlo**: 1,000+ random market paths show a *range* (10th–90th percentile) of outcomes and the probability of reaching a target. Try raising volatility to see the funnel widen.

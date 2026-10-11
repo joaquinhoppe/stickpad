@@ -163,7 +163,25 @@ const Budget = {
 };
 const Portfolio = {
   components: { Calc },
-  template: `<Calc :title="$t('Portfolio tracker')" desc="Holdings with live prices (free daily data from stooq.com; needs internet). US tickers like AAPL, others as 'sap.de'.">
+  template: `<Calc :title="$t('Portfolio tracker')" desc="Holdings with live prices from your own free API key (Finnhub, Alpha Vantage or Twelve Data). Without a key you can type prices by hand.">
+    <div class="apibox">
+      <div class="row sp"><div class="row"><b>{{ $t('Market data provider') }}</b>
+        <span class="pill" :class="cfg.has_key ? 'st-ok' : 'st-neglected'">{{ cfg.has_key ? $t('Connected') + ' · ' + cfg.key_hint : $t('No API key') }}</span></div>
+        <button class="sm" @click="showApi=!showApi">{{ showApi ? $t('Hide') : $t('API settings') }}</button></div>
+      <div v-if="showApi" style="margin-top:12px">
+        <div class="form">
+          <label class="f">{{ $t('Provider') }}<select v-model="form.provider"><option v-for="(v,k) in cfg.providers" :key="k" :value="k">{{v.name}}</option></select></label>
+          <label class="f">{{ $t('API key') }}<input type="password" autocomplete="off" v-model="form.key" :placeholder="cfg.has_key && form.provider===cfg.provider ? cfg.key_hint : $t('Paste your API key')" @keyup.enter="saveKey"></label>
+        </div>
+        <div class="row"><button class="pri" @click="saveKey" :disabled="busy">{{ busy ? $t('Testing…') : $t('Save & test') }}</button>
+          <button class="danger" v-if="cfg.has_key" @click="clearKey">{{ $t('Remove key') }}</button>
+          <a v-if="info.url" :href="info.url" target="_blank" rel="noopener noreferrer">{{ $t('Get a free key') }} ↗</a></div>
+        <p v-if="testMsg" class="small" :class="testOk ? 'good' : 'bad'" style="margin:10px 0 0">{{testMsg}}</p>
+        <p class="muted small" style="margin:10px 0 0">{{ $t('Your key is stored only in this computer\\'s local database and is sent only to the provider you choose. It is never included in exports.') }}
+          <span v-if="info.history===false"> {{ $t('This provider\\'s free plan has quotes only; use Alpha Vantage or Twelve Data for price history.') }}</span>
+          {{ $t('Use US tickers like AAPL; other markets depend on the provider (e.g. SAP.DEX on Alpha Vantage, SAP.DE on Twelve Data).') }}</p>
+      </div>
+    </div>
     <div class="form"><label class="f">{{ $t('Symbol') }}<input v-model="h.symbol"></label><label class="f">{{ $t('Shares') }}<input type="number" step="any" v-model.number="h.shares"></label><label class="f">{{ $t('Avg cost') }}<input type="number" step="any" v-model.number="h.cost" @keyup.enter="add"></label></div>
     <div class="row"><button class="pri" @click="add">{{ $t('Add holding') }}</button><button @click="fetchQ">{{ $t('Refresh prices') }}</button><span class="muted small">{{msg}}</span></div>
     <table style="margin-top:10px"><tr><th>{{ $t('Symbol') }}</th><th class="r">{{ $t('Shares') }}</th><th class="r">{{ $t('Cost') }}</th><th class="r">{{ $t('Price') }}</th><th class="r">{{ $t('Value') }}</th><th class="r">P/L</th><th></th></tr>
@@ -179,17 +197,37 @@ const Portfolio = {
     const alloc = computed(() => S.holding.length ? ({ type: 'doughnut', data: { labels: S.holding.map(x => x.symbol), datasets: [{ data: S.holding.map(val), backgroundColor: PAL }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { title: { display: true, text: T('Allocation') } } } }) : null);
     const upd = async (x, k, v) => { await saveDoc('holding', { ...x, [k]: parseFloat(v) || 0 }); };
     const add = async () => { if (!h.symbol) return; await saveDoc('holding', { ...h, symbol: h.symbol.toUpperCase() }); h.symbol = ''; };
+    const cfg = ref({ provider: '', has_key: false, key_hint: '', providers: {} }), form = reactive({ provider: 'finnhub', key: '' });
+    const showApi = ref(false), busy = ref(false), testMsg = ref(''), testOk = ref(false);
+    const info = computed(() => cfg.value.providers[form.provider] || {});
+    const loadCfg = async () => { cfg.value = await api('settings'); form.provider = cfg.value.provider || form.provider; };
+    const saveKey = async () => {
+      const key = form.key.trim(), same = form.provider === cfg.value.provider && cfg.value.has_key;
+      if (!key && !same) { testOk.value = false; testMsg.value = T('Paste the API key for this provider first.'); return; }
+      busy.value = true; testMsg.value = '';
+      try {
+        const t = await api('settings/test', 'POST', { provider: form.provider, key });
+        if (!t.ok) { testOk.value = false; testMsg.value = T('The provider rejected it: ') + t.error; return; }
+        cfg.value = await api('settings', 'PUT', { provider: form.provider, key });
+        form.key = ''; testOk.value = true; testMsg.value = T('Connected. Test quote: AAPL = {p}', { p: t.sample.price });
+        showApi.value = false; fetchQ();
+      } catch (e) { testOk.value = false; testMsg.value = e.message; } finally { busy.value = false; }
+    };
+    const clearKey = async () => { if (!confirm(T('Remove the saved API key?'))) return; cfg.value = await api('settings', 'PUT', { clear: true }); msg.value = ''; testMsg.value = ''; showApi.value = true; toast(T('API key removed')); };
     const fetchQ = async () => {
-      if (!S.holding.length) return; msg.value = T('loading…');
-      const r = await api('quote?symbols=' + S.holding.map(x => x.symbol).join(','));
-      let bad = 0; for (const [k, v] of Object.entries(r)) { if (v.price) px[k] = v.price; else bad++; }
-      msg.value = bad ? T('{n} symbols failed (offline or unknown ticker) — you can type prices manually', { n: bad }) : T('updated') + ' ' + new Date().toLocaleTimeString();
+      if (!S.holding.length) return;
+      if (!cfg.value.has_key) { msg.value = T('Add an API key (API settings) to fetch live prices, or type prices manually.'); return; }
+      msg.value = T('loading…');
+      let r; try { r = await api('quote?symbols=' + S.holding.map(x => x.symbol).join(',')); } catch (e) { msg.value = e.message; return; }
+      let bad = 0, why = ''; for (const [k, v] of Object.entries(r)) { if (v.price) px[k] = v.price; else { bad++; why = why || v.error; } }
+      msg.value = bad ? T('{n} symbols failed: {e}. You can type prices manually.', { n: bad, e: why }) : T('updated') + ' ' + new Date().toLocaleTimeString();
     };
     const hist = async s => {
       try { const r = await api('history?symbol=' + s); const base = r[0].close; hcfg.value = lineCfg(r.map(x => x.date), [{ label: s + ' close', data: r.map(x => x.close), fill: true }], s + ' — ' + T('last {n} trading days', { n: r.length })); }
       catch (e) { toast(T('No history: ') + e.message); }
     };
-    onMounted(fetchQ); return { upd, S, h, px, msg, val, pl, total, plTotal, alloc, add, fetchQ, hist, hcfg, removeDoc, money2, fmt };
+    onMounted(async () => { await loadCfg(); showApi.value = !cfg.value.has_key; fetchQ(); });
+    return { cfg, form, info, showApi, busy, testMsg, testOk, saveKey, clearKey, upd, S, h, px, msg, val, pl, total, plTotal, alloc, add, fetchQ, hist, hcfg, removeDoc, money2, fmt };
   },
 };
 Views.finance = {

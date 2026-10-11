@@ -63,7 +63,7 @@ Todas las calculadoras se recalculan con *Intro* o con su botón.
 
 - **Interés compuesto**: capital inicial + ahorro mensual, con una línea «real» ajustada a la inflación. Muestra el tiempo de duplicación por la regla del 72.
 - **Presupuesto**: registra ingresos (+) y gastos (−) con categorías; el flujo de caja mensual y el gráfico de gasto se actualizan solos. Importa CSV del banco (`date,description,amount,category`).
-- **Cartera**: añade tickers (`AAPL`, o `sap.de` para no estadounidenses), acciones y coste. *Actualizar precios* descarga cotizaciones diarias de stooq.com; ¿sin conexión? escribe los precios a mano. «gráfico» muestra el histórico. Incluye el gráfico de distribución.
+- **Cartera**: añade tickers (`AAPL`), acciones y coste. Para precios en vivo abre **Ajustes de API**, elige un proveedor (**Finnhub**, **Alpha Vantage** o **Twelve Data**; todos tienen plan gratuito), pega *tu propia* API key y pulsa **Guardar y probar**. La key se comprueba antes de guardarse, queda solo en tu base de datos local y nunca se incluye en las exportaciones. Después *Actualizar precios* descarga cotizaciones y «gráfico» muestra el histórico (el histórico requiere Alpha Vantage o Twelve Data). ¿Sin key? Escribe los precios a mano. Incluye el gráfico de distribución.
 - **Préstamo**: cuota, intereses totales y el calendario completo; añade un *Extra / mes* para ver cuántos intereses ahorras.
 - **VAN/TIR**: flujos como `-10000, 3000, 4000, 4500` con una tasa de descuento → VAN con aceptar/rechazar, TIR y plazo de recuperación.
 - **Monte Carlo**: más de 1.000 trayectorias aleatorias muestran un *rango* (percentiles 10–90) de resultados y la probabilidad de alcanzar un objetivo. Sube la volatilidad para ver cómo se ensancha el embudo.

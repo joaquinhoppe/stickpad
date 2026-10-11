@@ -8,6 +8,8 @@ import random
 import re
 import sqlite3
 import statistics
+import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import date, datetime, timedelta
 
@@ -30,7 +32,22 @@ def db():
         id INTEGER PRIMARY KEY AUTOINCREMENT, kind TEXT NOT NULL,
         data TEXT NOT NULL, created TEXT NOT NULL, updated TEXT NOT NULL)""")
     c.execute("CREATE INDEX IF NOT EXISTS ix_kind ON docs(kind)")
+    c.execute("CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL)")
     return c
+
+
+def get_setting(key, default=""):
+    with db() as c:
+        r = c.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
+    return r["value"] if r else default
+
+
+def set_setting(key, value):
+    with db() as c:
+        if value:
+            c.execute("INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (key, value))
+        else:
+            c.execute("DELETE FROM settings WHERE key=?", (key,))
 
 
 def now():
@@ -430,37 +447,142 @@ def import_csv():
     return jsonify(imported=made)
 
 
-def stooq(symbol, hist=False):
-    sym = symbol.lower() if "." in symbol else symbol.lower() + ".us"
-    url = (f"https://stooq.com/q/d/l/?s={sym}&i=d" if hist
-           else f"https://stooq.com/q/l/?s={sym}&f=sd2t2ohlcv&h&e=csv")
-    with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"}), timeout=8) as r:
-        return list(csv.DictReader(io.StringIO(r.read().decode())))
+# ---- market data: the user supplies their own API key (stored only in the local database)
+PROVIDERS = {
+    "finnhub": dict(name="Finnhub", url="https://finnhub.io/register", history=False),
+    "alphavantage": dict(name="Alpha Vantage", url="https://www.alphavantage.co/support/#api-key", history=True),
+    "twelvedata": dict(name="Twelve Data", url="https://twelvedata.com/register", history=True),
+}
+
+
+def http_json(url):
+    req = urllib.request.Request(url, headers={"User-Agent": "StickPad/1.0", "Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.loads(r.read().decode())
+    except urllib.error.HTTPError as e:
+        try:
+            msg = json.loads(e.read().decode())
+            msg = msg.get("error") or msg.get("message") or str(msg)
+        except Exception:
+            msg = ""
+        raise ValueError(f"HTTP {e.code} {msg}".strip())
+    except (urllib.error.URLError, TimeoutError, OSError) as e:
+        raise ValueError("no connection to the data provider (" + str(getattr(e, "reason", e))[:60] + ")")
+
+
+def _check_av(d):
+    for k in ("Error Message", "Note", "Information"):
+        if k in d:
+            raise ValueError(str(d[k])[:140])
+
+
+def fetch_quote(provider, key, sym):
+    q = urllib.parse.quote(sym)
+    if provider == "finnhub":
+        d = http_json(f"https://finnhub.io/api/v1/quote?symbol={q}&token={urllib.parse.quote(key)}")
+        if not d.get("c"):
+            raise ValueError("unknown symbol")
+        return dict(price=f(d["c"]), open=f(d.get("o")), date=datetime.fromtimestamp(d["t"]).date().isoformat() if d.get("t") else "")
+    if provider == "alphavantage":
+        d = http_json(f"https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol={q}&apikey={urllib.parse.quote(key)}")
+        _check_av(d)
+        g = d.get("Global Quote") or {}
+        if not g.get("05. price"):
+            raise ValueError("unknown symbol")
+        return dict(price=f(g["05. price"]), open=f(g.get("02. open")), date=g.get("07. latest trading day", ""))
+    if provider == "twelvedata":
+        d = http_json(f"https://api.twelvedata.com/quote?symbol={q}&apikey={urllib.parse.quote(key)}")
+        if d.get("status") == "error":
+            raise ValueError(str(d.get("message", "error"))[:140])
+        if not d.get("close"):
+            raise ValueError("unknown symbol")
+        return dict(price=f(d["close"]), open=f(d.get("open")), date=(d.get("datetime") or "")[:10])
+    raise ValueError("unknown provider")
+
+
+def fetch_history(provider, key, sym, days):
+    q, k = urllib.parse.quote(sym), urllib.parse.quote(key)
+    if provider == "alphavantage":
+        d = http_json(f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={q}&outputsize=compact&apikey={k}")
+        _check_av(d)
+        ts = d.get("Time Series (Daily)") or {}
+        rows = [dict(date=dt, close=f(v.get("4. close"))) for dt, v in sorted(ts.items())]
+    elif provider == "twelvedata":
+        d = http_json(f"https://api.twelvedata.com/time_series?symbol={q}&interval=1day&outputsize={min(days, 500)}&apikey={k}")
+        if d.get("status") == "error":
+            raise ValueError(str(d.get("message", "error"))[:140])
+        rows = [dict(date=v["datetime"][:10], close=f(v.get("close"))) for v in reversed(d.get("values") or [])]
+    else:
+        raise ValueError("this provider's free plan has no price history; choose Alpha Vantage or Twelve Data")
+    if not rows:
+        raise ValueError("no history for this symbol")
+    return rows[-days:]
+
+
+def mask(key):
+    return ("\u2022" * 6 + key[-4:]) if key else ""
+
+
+@app.get("/api/settings")
+def settings_get():
+    prov, key = get_setting("provider"), get_setting("api_key")
+    return jsonify(provider=prov, has_key=bool(key), key_hint=mask(key),
+                   providers={k: dict(name=v["name"], url=v["url"], history=v["history"]) for k, v in PROVIDERS.items()})
+
+
+@app.put("/api/settings")
+def settings_put():
+    b = request.get_json(silent=True) or {}
+    prov = b.get("provider", get_setting("provider"))
+    if prov and prov not in PROVIDERS:
+        return jsonify(error="unknown provider"), 400
+    set_setting("provider", prov)
+    if b.get("clear"):
+        set_setting("api_key", "")
+    elif b.get("key"):
+        set_setting("api_key", str(b["key"]).strip())
+    return settings_get()
+
+
+@app.post("/api/settings/test")
+def settings_test():
+    """Check a provider/key pair (the typed one, or the saved key if none is typed) with a real quote."""
+    b = request.get_json(silent=True) or {}
+    prov = b.get("provider") or get_setting("provider")
+    key = (b.get("key") or "").strip() or get_setting("api_key")
+    if prov not in PROVIDERS or not key:
+        return jsonify(ok=False, error="choose a provider and enter a key"), 400
+    try:
+        r = fetch_quote(prov, key, "AAPL")
+        return jsonify(ok=True, sample=r)
+    except ValueError as e:
+        return jsonify(ok=False, error=str(e)), 200
 
 
 @app.get("/api/quote")
 def quote():
+    prov, key = get_setting("provider"), get_setting("api_key")
+    if not (prov and key):
+        return jsonify(error="no_key"), 400
     out = {}
-    for s in [x for x in request.args.get("symbols", "").split(",") if x][:20]:
+    for sym in [x for x in request.args.get("symbols", "").split(",") if x][:20]:
         try:
-            r = stooq(s)[0]
-            out[s.upper()] = dict(price=f(r.get("Close")), open=f(r.get("Open")), date=r.get("Date"))
-            if r.get("Close") in (None, "N/D"):
-                out[s.upper()] = dict(error="no data")
-        except Exception as e:  # network failures are expected offline
-            out[s.upper()] = dict(error=str(e)[:80])
+            out[sym.upper()] = fetch_quote(prov, key, sym)
+        except ValueError as e:
+            out[sym.upper()] = dict(error=str(e))
     return jsonify(out)
 
 
 @app.get("/api/history")
 def history():
+    prov, key = get_setting("provider"), get_setting("api_key")
+    if not (prov and key):
+        return jsonify(error="no_key"), 400
     try:
-        rows = stooq(request.args.get("symbol", "aapl"), hist=True)
-        n = int(request.args.get("days", 250))
-        rows = [dict(date=r["Date"], close=f(r["Close"])) for r in rows if r.get("Close")][-n:]
-        return jsonify(rows)
-    except Exception as e:
-        return jsonify(error=str(e)[:100]), 502
+        return jsonify(fetch_history(prov, key, request.args.get("symbol", "AAPL"), int(request.args.get("days", 250))))
+    except ValueError as e:
+        return jsonify(error=str(e)), 502
 
 
 # -------------------------------------------------------------------- stats
